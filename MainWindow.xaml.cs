@@ -61,9 +61,9 @@ namespace VideoPlayer
             double sc_h = System.Windows.SystemParameters.PrimaryScreenHeight;
             this.Width = sc_w / 3;
             this.Height = (sc_w / 3) * (double)Btn_SetRatio_Stat.SIXTEEN_NINE;
-            // 設定視窗最小尺寸
-            this.MinWidth = sc_w / 4;
-            this.MinHeight = (sc_w / 4) * (double)Btn_SetRatio_Stat.SIXTEEN_NINE;
+            // 設定視窗最小尺寸(640*360)
+            this.MinWidth = 480;
+            this.MinHeight = 270;
             // 設定視窗最大尺寸
             this.MaxWidth = sc_w;
             this.MaxHeight = sc_w * (double)Btn_SetRatio_Stat.SIXTEEN_NINE;
@@ -194,7 +194,6 @@ namespace VideoPlayer
             // 按鈕圖片旋轉
             RotateTransform btn_rotateTransform = new RotateTransform(_isShowControlPanel ? (int)Btn_ControlThumb_Angle.OPENED : (int)Btn_ControlThumb_Angle.CLOSED);
             btn_controlthumb.RenderTransform = btn_rotateTransform;
-            Console.WriteLine("---> Position (33 test) X : " + this.Left + ", Y : " + this.Top);
         }
         // 按鈕事件_按比例調整視窗尺寸
         private void Btn_Click_SetRatio(object sender, RoutedEventArgs e)
@@ -403,12 +402,6 @@ namespace VideoPlayer
             string url = e.NewValue as string;
             //txtbox_url.Invoke(new Action(() => txtbox_url.Text = url));
             txb_videourl.Text = url.Trim();
-
-            Console.WriteLine("-");
-            Console.WriteLine("-");
-            Console.WriteLine("resd url : " + url);
-            Console.WriteLine("-");
-            Console.WriteLine("-");
 
             // 浮動式視窗
             if (Bool_CheckAndEditUrl() && this._browser != null && _str.Length > 9)

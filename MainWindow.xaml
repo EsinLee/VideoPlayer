@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VideoPlayer"
         mc:Ignorable="d"
+        Icon="/media/privateicon.ico"
         Title="VideoPlayerFloatingWindow" Height="600" Width="1000" WindowStyle="None" WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <!--圓角矩形按鈕(含hover設定)-->
