@@ -1,0 +1,151 @@
+﻿<Window x:Class="VideoPlayer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:VideoPlayer"
+        mc:Ignorable="d"
+        Title="VideoPlayerFloatingWindow" Height="600" Width="1000" WindowStyle="None" WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <!--圓角矩形按鈕(含hover設定)-->
+        <ControlTemplate x:Key="Button_RoundedRect_hover" TargetType="Button">
+            <Border x:Name="border"
+                BorderThickness="0"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                Background="{TemplateBinding Background}"
+                CornerRadius="20">
+                <ContentPresenter Name="Content" Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="true">
+                    <!--設定背景顏色-->
+                    <Setter TargetName="border" Property="Background" Value="#CCFFFFFF"/>
+                    <!--設定文字顏色-->
+                    <Setter TargetName="Content" Property="TextElement.Foreground" Value="#FF000000"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <!--自訂圖片位址-->
+        <Image x:Key="Topmost" Source="/media/bt_nail_hollow.png"/>
+        <Image x:Key="Dragmove" Source="/media/bt_dragmove_hollow.png"/>
+        <Image x:Key="Lockwindow" Source="/media/bt_lock_a_hollow.png"/>
+        <Image x:Key="WindowRatio_16_9" Source="/media/bt_window_ratio_16_9_hollow.png"/>
+        <Image x:Key="WindowRatio_16_10" Source="/media/bt_window_ratio_16_10_hollow.png"/>
+        <Image x:Key="WindowSize_1_2" Source="/media/bt_window_size_1_2_hollow.png"/>
+        <Image x:Key="WindowSize_1_3" Source="/media/bt_window_size_1_3_hollow.png"/>
+        <Image x:Key="WindowSize_1_4" Source="/media/bt_window_size_1_4_hollow.png"/>
+        <Image x:Key="UploadUrl" Source="/media/bt_upload_hollow.png"/>
+        <Image x:Key="WindowClose" Source="/media/bt_cancel_hollow.png"/>
+        <Image x:Key="WindowFullScreen" Source="/media/bt_resize_hollow.png"/>
+        <Image x:Key="ArrowDown" Source="/media/bt_arrow_down_hollow.png"/>
+    </Window.Resources>
+    <!--自定特性_end-->
+
+    <Grid MouseEnter="MainGrid_MouseEnter" MouseLeave="MainGrid_MouseLeave" AllowDrop="True">
+        <Grid Name="GridViewer" Margin="0,0,0,0" Background="Black" AllowDrop="True"/>
+        <Grid Margin="5,15,5,0" VerticalAlignment="Top">
+            <Button x:Name="btn_controlthumb" Template="{StaticResource Button_RoundedRect_hover}" HorizontalAlignment="Left" VerticalAlignment="Center" Width="30" Height="30" BorderBrush="Transparent" Background="#33FFFFFF" Margin="12,0,0,0" Click="Btn_Click_ControlThumb" RenderTransformOrigin="0.5,0.5" ToolTip="Show / Hide panel">
+                <Button.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform/>
+                        <RotateTransform Angle="0"/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Button.RenderTransform>
+                <DynamicResource ResourceKey="ArrowDown"/>
+            </Button>
+        </Grid>
+        <Grid x:Name="gd_maincontroller_1" Margin="5,50,5,0" VerticalAlignment="Top">
+            <Grid.Background>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <LinearGradientBrush.RelativeTransform>
+                        <TransformGroup>
+                            <ScaleTransform CenterY="0.5" CenterX="0.5"/>
+                            <SkewTransform CenterX="0.5" CenterY="0.5"/>
+                            <RotateTransform Angle="0" CenterX="0.5" CenterY="0.5"/>
+                            <TranslateTransform/>
+                        </TransformGroup>
+                    </LinearGradientBrush.RelativeTransform>
+                    <GradientStop Color="#07FFFFFF"/>
+                    <GradientStop Color="#07FFFFFF" Offset="1"/>
+                    <GradientStop Color="#26FFFFFF" Offset="0.743"/>
+                    <GradientStop Color="#26FFFFFF" Offset="0.25"/>
+                    <GradientStop Color="#3FFFFFFF" Offset="0.5"/>
+                </LinearGradientBrush>
+            </Grid.Background>
+
+            <Button x:Name="btn_dragmove" Template="{StaticResource Button_RoundedRect_hover}" HorizontalAlignment="Left" VerticalAlignment="Center" Width="35" Height="35" BorderBrush="Transparent" Background="#33FFFFFF" Margin="10,0,0,0" PreviewMouseLeftButtonDown="Btn_Mouse_PreviewMouseLeftButtonDown" ToolTip="Drag move">
+                <DynamicResource ResourceKey="Dragmove"/>
+            </Button>
+            <Button x:Name="btn_mosttop" Template="{StaticResource Button_RoundedRect_hover}" HorizontalAlignment="Left" VerticalAlignment="Center" Width="35" Height="35" RenderTransformOrigin="0.5,0.5" Click="Btn_Click_Topmost" Foreground="#003A1D1D" Background="#33FFFFFF" Margin="50,0,0,0" ToolTip="Topmost">
+                <Button.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform/>
+                        <RotateTransform Angle="0"/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Button.RenderTransform>
+                <DynamicResource ResourceKey="Topmost"/>
+            </Button>
+            <Button x:Name="btn_lock" Template="{StaticResource Button_RoundedRect_hover}" HorizontalAlignment="Left" VerticalAlignment="Center" Width="35" Height="35" BorderBrush="Transparent" Background="#33FFFFFF" Click="Btn_Click_Lock" Margin="90,0,0,0" ToolTip="Size lock">
+                <DynamicResource ResourceKey="Lockwindow"/>
+            </Button>
+            <Button x:Name="btn_close" Template="{StaticResource Button_RoundedRect_hover}" HorizontalAlignment="Right" VerticalAlignment="Center" Width="35" Height="35" BorderBrush="Transparent" Background="#33FFFFFF" Click="Btn_Click_Close" Margin="0,0,10,0" ToolTip="Close">
+                <DynamicResource ResourceKey="WindowClose"/>
+            </Button>
+            <Button x:Name="btn_upload" Template="{StaticResource Button_RoundedRect_hover}" HorizontalAlignment="Right" VerticalAlignment="Center" Width="35" Height="35" BorderBrush="Transparent" Background="#33FFFFFF" Click="Btn_Click_Update" Margin="0,0,50,0" ToolTip="Update">
+                <DynamicResource ResourceKey="UploadUrl"/>
+            </Button>
+            <TextBox x:Name="txb_videourl" VerticalAlignment="Center" Margin="130,0,90,0" >
+                <TextBox.Background>
+                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                        <GradientStop Color="Transparent" Offset="0"/>
+                        <GradientStop Color="Transparent" Offset="1"/>
+                        <GradientStop Color="#4CFFFFFF" Offset="0.498"/>
+                    </LinearGradientBrush>
+                </TextBox.Background>
+            </TextBox>
+        </Grid>
+        <Grid x:Name="gd_maincontroller_2" Margin="5,90,5,0" VerticalAlignment="Top">
+            <Grid.Background>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <LinearGradientBrush.RelativeTransform>
+                        <TransformGroup>
+                            <ScaleTransform CenterY="0.5" CenterX="0.5"/>
+                            <SkewTransform CenterX="0.5" CenterY="0.5"/>
+                            <RotateTransform Angle="0" CenterX="0.5" CenterY="0.5"/>
+                            <TranslateTransform/>
+                        </TransformGroup>
+                    </LinearGradientBrush.RelativeTransform>
+                    <GradientStop Color="#07FFFFFF"/>
+                    <GradientStop Color="#07FFFFFF" Offset="1"/>
+                    <GradientStop Color="#26FFFFFF" Offset="0.743"/>
+                    <GradientStop Color="#26FFFFFF" Offset="0.25"/>
+                    <GradientStop Color="#3FFFFFFF" Offset="0.5"/>
+                </LinearGradientBrush>
+            </Grid.Background>
+            <Button x:Name="btn_ratio_16_9" Template="{StaticResource Button_RoundedRect_hover}" HorizontalAlignment="Left" VerticalAlignment="Center" Width="35" Height="35" BorderBrush="Transparent" Background="#33FFFFFF" Click="Btn_Click_SetRatio" Margin="10,0,0,0" ToolTip="Ratio 16:9">
+                <DynamicResource ResourceKey="WindowRatio_16_9"/>
+            </Button>
+            <Button x:Name="btn_ratio_16_10" Template="{StaticResource Button_RoundedRect_hover}" HorizontalAlignment="Left" VerticalAlignment="Center" Width="35" Height="35" BorderBrush="Transparent" Background="#33FFFFFF" Click="Btn_Click_SetRatio" Margin="50,0,0,0" ToolTip="Ratio 16:10">
+                <DynamicResource ResourceKey="WindowRatio_16_10"/>
+            </Button>
+            <Button x:Name="btn_full_sc" Template="{StaticResource Button_RoundedRect_hover}" HorizontalAlignment="Left" VerticalAlignment="Center" Width="35" Height="35" BorderBrush="Transparent" Background="#33FFFFFF" Click="Btn_Click_SetFullScreen" Margin="90,0,0,0" ToolTip="Full screen">
+                <DynamicResource ResourceKey="WindowFullScreen"/>
+            </Button>
+            <Button x:Name="btn_size_1_2" Template="{StaticResource Button_RoundedRect_hover}" HorizontalAlignment="Left" VerticalAlignment="Center" Width="35" Height="35" BorderBrush="Transparent" Background="#33FFFFFF" Click="Btn_Click_SetSize" Margin="130,0,0,0" ToolTip="1/2 screen">
+                <DynamicResource ResourceKey="WindowSize_1_2"/>
+            </Button>
+            <Button x:Name="btn_size_1_3" Template="{StaticResource Button_RoundedRect_hover}" HorizontalAlignment="Left" VerticalAlignment="Center" Width="35" Height="35" BorderBrush="Transparent" Background="#33FFFFFF" Click="Btn_Click_SetSize" Margin="170,0,0,0" ToolTip="1/3 screen">
+                <DynamicResource ResourceKey="WindowSize_1_3"/>
+            </Button>
+            <Button x:Name="btn_size_1_4" Template="{StaticResource Button_RoundedRect_hover}" HorizontalAlignment="Left" VerticalAlignment="Center" Width="35" Height="35" BorderBrush="Transparent" Background="#33FFFFFF" Click="Btn_Click_SetSize" Margin="210,0,0,0" ToolTip="1/4 screen">
+                <DynamicResource ResourceKey="WindowSize_1_4"/>
+            </Button>
+        </Grid>
+
+    </Grid>
+</Window>
