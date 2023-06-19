@@ -4,9 +4,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VideoPlayer"
+        xmlns:properties="clr-namespace:VideoPlayer.Properties"
+        Icon="/bt_dragmove_hollow.png"
         mc:Ignorable="d"
-        Icon="/media/privateicon.ico"
-        Title="VideoPlayerFloatingWindow" Height="600" Width="1000" WindowStyle="None" WindowStartupLocation="CenterScreen">
+        Title="VideoPlayerFloatingWindow" Height="600" Width="1000" WindowStyle="None" WindowStartupLocation="CenterScreen" MouseMove="restartTimer_MouseMove" KeyDown="OnKeyDownHandler_Esc" >
     <Window.Resources>
         <!--圓角矩形按鈕(含hover設定)-->
         <ControlTemplate x:Key="Button_RoundedRect_hover" TargetType="Button">
@@ -39,6 +40,7 @@
         <Image x:Key="UploadUrl" Source="/media/bt_upload_hollow.png"/>
         <Image x:Key="WindowClose" Source="/media/bt_cancel_hollow.png"/>
         <Image x:Key="WindowFullScreen" Source="/media/bt_resize_hollow.png"/>
+        <Image x:Key="WindowMinisizeScreen" Source="/media/bt_minimize_hollow.png"/>
         <Image x:Key="ArrowDown" Source="/media/bt_arrow_down_hollow.png"/>
     </Window.Resources>
     <!--自定特性_end-->
@@ -97,10 +99,13 @@
             <Button x:Name="btn_close" Template="{StaticResource Button_RoundedRect_hover}" HorizontalAlignment="Right" VerticalAlignment="Center" Width="35" Height="35" BorderBrush="Transparent" Background="#33FFFFFF" Click="Btn_Click_Close" Margin="0,0,10,0" ToolTip="Close">
                 <DynamicResource ResourceKey="WindowClose"/>
             </Button>
-            <Button x:Name="btn_upload" Template="{StaticResource Button_RoundedRect_hover}" HorizontalAlignment="Right" VerticalAlignment="Center" Width="35" Height="35" BorderBrush="Transparent" Background="#33FFFFFF" Click="Btn_Click_Update" Margin="0,0,50,0" ToolTip="Update">
+            <Button x:Name="btn_upload" Template="{StaticResource Button_RoundedRect_hover}" HorizontalAlignment="Right" VerticalAlignment="Center" Width="35" Height="35" BorderBrush="Transparent" Background="#33FFFFFF" Click="Btn_Click_Update" Margin="0,0,90,0" ToolTip="Update">
                 <DynamicResource ResourceKey="UploadUrl"/>
             </Button>
-            <TextBox x:Name="txb_videourl" VerticalAlignment="Center" Margin="130,0,90,0" >
+            <Button x:Name="btn_minisize" Template="{StaticResource Button_RoundedRect_hover}" HorizontalAlignment="Right" VerticalAlignment="Center" Width="35" Height="35" BorderBrush="Transparent" Background="#33FFFFFF" Click="Btn_Click_Minisize" Margin="0,0,50,0" ToolTip="Update">
+                <DynamicResource ResourceKey="WindowMinisizeScreen"/>
+            </Button>
+            <TextBox x:Name="txb_videourl" VerticalAlignment="Center" Margin="130,0,130,0" >
                 <TextBox.Background>
                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                         <GradientStop Color="Transparent" Offset="0"/>

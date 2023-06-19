@@ -1,4 +1,5 @@
-﻿using CefSharp.Wpf;
+﻿using CefSharp;
+using CefSharp.Wpf;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using static System.Net.WebRequestMethods;
 
 namespace VideoPlayer
@@ -48,6 +50,8 @@ namespace VideoPlayer
         double originWindowHeight;
         // 網址暫存
         string _str;
+        // 計時器(隱藏UI用)
+        private DispatcherTimer timer;
         public MainWindow()
         {
             InitializeComponent();
@@ -75,6 +79,9 @@ namespace VideoPlayer
             // 創建網頁瀏覽器
             _browser = new CefSharp.Wpf.ChromiumWebBrowser();
             _browser.AddressChanged += Browser_AddressChanged;
+            // 設定LifeSpanHandler控制(有問題)
+            //_browser.LifeSpanHandler = new CustomLifeSpanHandler();
+            // 在現有表格中加入瀏覽器
             GridViewer.Children.Add(_browser);
 
             // 初始化置頂紀錄
@@ -102,6 +109,45 @@ namespace VideoPlayer
             {
                 System.Windows.MessageBox.Show("Floating Winsdow Error.");
             }
+
+            btn_controlthumb.Visibility = Visibility.Hidden;
+            // 計時器(隱藏UI用)
+            timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromSeconds(3);
+            timer.Tick += Timer_Tick;
+            timer.Start();
+        }
+        // 計時器實作(時間到隱藏介面)
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            timer.Stop();
+            if (_isShowControlPanel)
+            {
+                // 更改狀態紀錄
+                _isShowControlPanel = !_isShowControlPanel;
+                // 控制區顯示控制(隱藏/顯示)
+                ControlPanel_Visible(_isShowControlPanel);
+                // 按鈕圖片旋轉
+                RotateTransform btn_rotateTransform = new RotateTransform(_isShowControlPanel ? (int)Btn_ControlThumb_Angle.OPENED : (int)Btn_ControlThumb_Angle.CLOSED);
+                btn_controlthumb.RenderTransform = btn_rotateTransform;
+            }
+        }
+        // 滑鼠事件-移動滑鼠重新計時
+        private void restartTimer_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (!_isShowControlPanel)
+            {
+                // 更改狀態紀錄
+                _isShowControlPanel = !_isShowControlPanel;
+                // 控制區顯示控制(隱藏/顯示)
+                ControlPanel_Visible(_isShowControlPanel);
+                // 按鈕圖片旋轉
+                RotateTransform btn_rotateTransform = new RotateTransform(_isShowControlPanel ? (int)Btn_ControlThumb_Angle.OPENED : (int)Btn_ControlThumb_Angle.CLOSED);
+                btn_controlthumb.RenderTransform = btn_rotateTransform;
+            }
+
+            timer.Stop();
+            timer.Start();
         }
         // 按鈕事件-收放控制區
         private void Btn_Click_ControlThumb(object sender, RoutedEventArgs e)
@@ -261,10 +307,47 @@ namespace VideoPlayer
         // 按鈕事件-依視窗尺寸設定視窗大小
         private void Btn_Click_SetSize(object sender, RoutedEventArgs e)
         {
-            if (_canResize)
+            /*if (_canResize)
             {
-                // 螢幕尺寸
-                double screen_size_width = System.Windows.SystemParameters.PrimaryScreenWidth;
+            }*/
+
+            // 若當前為全螢幕狀態
+            if (_isFullScreen) // 解除全螢幕狀態
+            {
+                //視窗尺寸復原
+                this.Height = originWindowHeight;
+                this.Width = originWindowWidth;
+                // 視窗位置復原
+                this.Left = originPosition_x;
+                this.Top = originPosition_y;
+                // 視窗設為'可拖動'
+                _canDragMove = true;
+                // 紀錄當前狀態為'非全螢幕'
+                _isFullScreen = false;
+                // 設定當前可用按鈕調整大小
+                _canResize = true;
+                // 停用拖動按鈕(不停用會有Bug)
+                btn_dragmove.IsEnabled = true;
+                // 更改置頂狀態(避免因Topmost未解除卡住)-以_wasTopMost判定 -> 若最大化前本就是非置頂狀態，則不更改
+                if (_wasTopMost)
+                {
+                    // 更改置頂狀態(false -> true)
+                    this.Topmost = !this.Topmost;
+                    // 按鈕圖片旋轉
+                    //buttonImageAngle = Topmost ? (int)Btn_Topmost_Angle.TOPMOST : (int)Btn_Topmost_Angle.NOT_TOPMOST;
+                    RotateTransform btn_rotateTransform = new RotateTransform(Topmost ? (int)Btn_Topmost_Angle.TOPMOST : (int)Btn_Topmost_Angle.NOT_TOPMOST);
+                    btn_mosttop.RenderTransform = btn_rotateTransform;
+                }
+                // 鎖定尺寸拖動(避免全螢幕時拖動到改變尺寸)
+                if (_isLocked == false)
+                {
+                    // 鎖定尺寸拖動(此處必為解鎖)
+                    this.ResizeMode = (ResizeMode)(_isLocked ? Btn_Lock_Stat.NORESIZE : Btn_Lock_Stat.CANRESIZE);
+                }
+            }
+
+            // 螢幕尺寸
+            double screen_size_width = System.Windows.SystemParameters.PrimaryScreenWidth;
                 double divisor = 4.0;
 
                 FrameworkElement sourceFrameworkElement = e.Source as FrameworkElement;
@@ -283,7 +366,6 @@ namespace VideoPlayer
                 this.Width = screen_size_width / divisor;
                 this.Height = screen_size_width / divisor * windowRatio;
                 e.Handled = true;
-            }
         }
         // 按鈕事件-視窗尺寸設定全螢幕
         private void Btn_Click_SetFullScreen(object sender, RoutedEventArgs e)
@@ -382,6 +464,18 @@ namespace VideoPlayer
                 _browser.Address = txb_videourl.Text;
             }
         }
+        // 按鈕事件-縮小視窗
+        private void Btn_Click_Minisize(object sender, RoutedEventArgs e)
+        {
+            if (_canResize)
+            {
+                // 更改狀態
+                //_isLocked = !_isLocked;
+                // 鎖定尺寸拖動
+                //this.ResizeMode = (ResizeMode)(_isLocked ? Btn_Lock_Stat.NORESIZE : Btn_Lock_Stat.CANRESIZE);
+                this.WindowState = WindowState.Minimized;
+            }
+        }
         // Bool-確認Youbtube網址正確並解析出影片id
         private bool Bool_CheckAndEditUrl()
         {
@@ -409,6 +503,88 @@ namespace VideoPlayer
                 txb_videourl.Text = $"https://www.youtube-nocookie.com/embed/{_str}";
             }
         }
-        
+        // 按下Enter鍵-解除全螢幕狀態
+        private void OnKeyDownHandler_Esc(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if ((e.Key == Key.Escape) && _isFullScreen) // 解除全螢幕狀態
+            {
+                //視窗尺寸復原
+                this.Height = originWindowHeight;
+                this.Width = originWindowWidth;
+                // 視窗位置復原
+                this.Left = originPosition_x;
+                this.Top = originPosition_y;
+                // 視窗設為'可拖動'
+                _canDragMove = true;
+                // 紀錄當前狀態為'非全螢幕'
+                _isFullScreen = false;
+                // 設定當前可用按鈕調整大小
+                _canResize = true;
+                // 停用拖動按鈕(不停用會有Bug)
+                btn_dragmove.IsEnabled = true;
+                // 更改置頂狀態(避免因Topmost未解除卡住)-以_wasTopMost判定 -> 若最大化前本就是非置頂狀態，則不更改
+                if (_wasTopMost)
+                {
+                    // 更改置頂狀態(false -> true)
+                    this.Topmost = !this.Topmost;
+                    // 按鈕圖片旋轉
+                    //buttonImageAngle = Topmost ? (int)Btn_Topmost_Angle.TOPMOST : (int)Btn_Topmost_Angle.NOT_TOPMOST;
+                    RotateTransform btn_rotateTransform = new RotateTransform(Topmost ? (int)Btn_Topmost_Angle.TOPMOST : (int)Btn_Topmost_Angle.NOT_TOPMOST);
+                    btn_mosttop.RenderTransform = btn_rotateTransform;
+                }
+                // 鎖定尺寸拖動(避免全螢幕時拖動到改變尺寸)
+                if (_isLocked == false)
+                {
+                    // 鎖定尺寸拖動(此處必為解鎖)
+                    this.ResizeMode = (ResizeMode)(_isLocked ? Btn_Lock_Stat.NORESIZE : Btn_Lock_Stat.CANRESIZE);
+                }
+            }
+        }
+
+    }
+
+    // 控制_browser視窗跳出新視窗
+    public class CustomLifeSpanHandler : ILifeSpanHandler
+    {
+        public bool OnBeforePopup(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, string targetUrl,
+            string targetFrameName, WindowOpenDisposition targetDisposition, bool userGesture, IPopupFeatures popupFeatures,
+            IWindowInfo windowInfo, IBrowserSettings browserSettings, ref bool noJavascriptAccess, out IWebBrowser newBrowser)
+        {
+            if (popupFeatures.Width == 0 && popupFeatures.Height == 0)
+            {
+                // Block pop-up window
+                newBrowser = null;
+                // return false -> popup new window; return true -> ignore popup action
+                return true;
+            }
+            else
+            {
+                // Handle pop-up window
+                newBrowser = chromiumWebBrowser;
+                return false;
+            }
+        }
+
+        bool ILifeSpanHandler.DoClose(IWebBrowser chromiumWebBrowser, IBrowser browser)
+        {
+            throw new NotImplementedException();
+        }
+
+        void ILifeSpanHandler.OnAfterCreated(IWebBrowser chromiumWebBrowser, IBrowser browser)
+        {
+            throw new NotImplementedException();
+        }
+
+        void ILifeSpanHandler.OnBeforeClose(IWebBrowser chromiumWebBrowser, IBrowser browser)
+        {
+            throw new NotImplementedException();
+        }
+
+        bool ILifeSpanHandler.OnBeforePopup(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, string targetUrl, string targetFrameName, WindowOpenDisposition targetDisposition, bool userGesture, IPopupFeatures popupFeatures, IWindowInfo windowInfo, IBrowserSettings browserSettings, ref bool noJavascriptAccess, out IWebBrowser newBrowser)
+        {
+            throw new NotImplementedException();
+        }
+
+        // Other methods of ILifeSpanHandler interface
     }
 }
